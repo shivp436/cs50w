@@ -1,0 +1,8 @@
+body {
+  padding: 10px;
+}
+
+th,
+td {
+  min-width: 15vw;
+}
