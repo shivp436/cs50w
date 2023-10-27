@@ -2,10 +2,30 @@
 
 {% block body %}
 
-    {{ listing.id }}
-    {{ listing.title }}
-    {{ listing.i_bid }}
-    {{ listing.owner }}
-    {{ listing.category }}
+    {{ item.id }}
+    {{ item.title }}
+    {{ item.i_bid }}
+    {{ item.owner }}
+    {{ item.category }}
+        {% if user.is_authenticated %}
+          {% if user in item.interested_users.all %}
+            <form action="{% url 'watchlist' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="listing_id" value="{{ item.id }}">
+              <input type="hidden" name="action" value="remove">
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <input type="submit" value="Remove from watchlist">
+            </form>
+          {% else %}
+            <form action="{% url 'watchlist' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="listing_id" value="{{ item.id }}">
+              <input type="hidden" name="action" value="add">
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <input type="submit" value="Add to watchlist">
+            </form>
+          {% endif %}
+        {% endif %}
+
 
 {% endblock %}

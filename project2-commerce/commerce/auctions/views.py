@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.db.models import F
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 
 from .forms import NewListingForm
@@ -16,6 +16,7 @@ def index(request):
         "auctions/index.html",
         {
             "listings": ListingModel.objects.all(),
+            "user": request.user,
         },
     )
 
@@ -74,7 +75,10 @@ def register(request):
 
 
 @login_required
-def add_listing(request):
+def create_listing(request):
+    """
+    create a listing
+    """
     if request.method == "POST":
         form = NewListingForm(request.POST)
         if form.is_valid():
@@ -99,7 +103,7 @@ def add_listing(request):
 
         return render(
             request,
-            "auctions/add_listing.html",
+            "auctions/create_listing.html",
             {
                 "form": form,
             },
@@ -107,28 +111,46 @@ def add_listing(request):
 
     return render(
         request,
-        "auctions/add_listing.html",
+        "auctions/create_listing.html",
         {
             "form": NewListingForm(),
         },
     )
 
 
-@login_required
-def listing(request, listing_id):
-    listing = ListingModel.objects.get(id=listing_id)
+def listing_view(request, listing_id):
+    """
+    listing view
+    """
+    item = ListingModel.objects.get(id=listing_id)
     return render(
         request,
         "auctions/listing.html",
         {
-            "listing": listing,
+            "item": item,
         },
     )
 
 
 @login_required
 def watchlist(request):
-    listed_items = ListingModel.objects.filter(interested_users=request.user)
+    """
+    View the watchlist
+    """
+    user = request.user
+    if request.method == "POST":
+        listing_id = request.POST.get("listing_id")
+        listing = ListingModel.objects.get(id=listing_id)
+        action = request.POST.get("action")
+        if action == "add":
+            user.watchlist.add(listing)
+        elif action == "remove":
+            user.watchlist.remove(listing)
+
+        # redirect the user back to their original location
+        return redirect(request.POST.get("next", "index"))
+
+    listed_items = ListingModel.objects.filter(interested_users=user)
     return render(
         request,
         "auctions/watchlist.html",

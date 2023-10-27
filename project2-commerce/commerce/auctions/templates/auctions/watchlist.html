@@ -15,11 +15,30 @@
       {% for item in items %}
       <tr>
 
-        <td><a href="{% url 'listing' item.id %}">{{ item.title }}</a> </td>
+        <td><a href="{% url 'listing_view' item.id %}">{{ item.title }}</a> </td>
         <td> {{ item.description }} </td>
         <td> {{ item.i_bid }} </td>
         <td> {{ item.owner }} </td>
         <td> {{ item.category }} </td>
+        <td> 
+          {% if user in item.interested_users.all %}
+            <form action="{% url 'watchlist' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="listing_id" value="{{ item.id }}">
+              <input type="hidden" name="action" value="remove">
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <input type="submit" value="Remove from watchlist">
+            </form>
+          {% else %}
+            <form action="{% url 'watchlist' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="listing_id" value="{{ item.id }}">
+              <input type="hidden" name="action" value="add">
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <input type="submit" value="Add to watchlist">
+            </form>
+          {% endif %}
+        </td>
 
       </tr>
       {% endfor %}
